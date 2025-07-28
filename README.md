@@ -1,3 +1,2 @@
 # CliniClick
-Teste
-.\venv\Scripts\activate
+Projeto de agendamento de consultas 
