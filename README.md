@@ -1,3 +1,3 @@
 # CliniClick
 Teste
-Oie deu certo 
+.\venv\Scripts\activate
