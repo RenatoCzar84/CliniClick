@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from .models import Usuario
 
 class UsuarioForm(forms.ModelForm):
+    password=forms.CharField(label='Senha', widget=forms.PasswordInput)
     class Meta:
         model = Usuario
         fields = [
@@ -27,7 +28,6 @@ class UsuarioForm(forms.ModelForm):
             'plano_saude': 'Plano de Saúde',
         }
         widgets = {
-            'password': forms.PasswordInput(),
             'data_nascimento': forms.DateInput(attrs={'type': 'date'}),
         }
 
@@ -36,3 +36,12 @@ class UsuarioForm(forms.ModelForm):
         if Usuario.objects.filter(cpf=cpf).exists():
             raise ValidationError("Este CPF já está cadastrado.")
         return cpf
+    
+    def save(self, commit=True):
+        user=super().save(commit=False)
+        raw_password=self.cleaned_data.get('password')
+        if raw_password:
+            user.set_password(raw_password)
+        if commit:
+            user.save()
+            return user 
