@@ -3,37 +3,39 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Médicos e Especialidades</title>
-<link rel="stylesheet" href="{% static 'medicos/css/estilo.css' %}">
+    <link rel="stylesheet" href="{% static 'medicos/css/estilo.css' %}">
 </head>
 <body>
     <div class="container">
         <h1>Médicos e Especialidades</h1>
 
-        <div class="form-card">
-            <form method="get">
-                {% csrf_token %}
-                <div class="form-row">
-                    <div class="form-column">
-                        {{ form.especialidade_desejada.label_tag }}
-                        {{ form.especialidade_desejada }}
-                    </div>
-                    <div class="form-column">
-                        {{ form.medico.label_tag }}
-                        {{ form.medico }}
-                    </div>
-                </div>
-                <div class="form-row" id="crm-display" style="display: none;">
-                    <p>CRM: <span id="crm-info"></span></p>
-                </div>
+        <form method="GET" action="{% url 'medicos_especialidades' %}">
+            <label for="especialidade">Especialidade Desejada:</label>
+            <select id="especialidade" name="especialidade" onchange="this.form.submit()">
+                <option value="">--- Selecione uma Especialidade ---</option>
+                {% for esp in especialidades %}
+                    <option value="{{ esp.id }}" {% if esp.id|stringformat:"s" == especialidade_selecionada %}selected{% endif %}>{{ esp.nome }}</option>
+                {% endfor %}
+            </select>
 
-                <button type="submit" class="btn btn-green">
-                    Selecionar
-                </button>
-            </form>
-        </div>
+            <br><br>
+
+            <label for="medico">Escolha o Médico:</label>
+            <select id="medico" name="medico">
+                <option value="">--- Selecione um Médico ---</option>
+                {% for med in medicos %}
+                    <option value="{{ med.id }}" {% if med.id|stringformat:"s" == medico_selecionado %}selected{% endif %}>{{ med.nome }}</option>
+                {% endfor %}
+            </select>
+
+            <br><br>
+            <button type="submit">Selecionar</button>
+        </form>
+
+        {% if sucesso %}
+            <p class="mensagem-sucesso">Selecionados com Sucesso!</p>
+        {% endif %}
     </div>
- 
 </body>
 </html>
