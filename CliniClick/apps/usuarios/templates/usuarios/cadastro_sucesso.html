@@ -1,12 +1,18 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Cadastro realizado</title>
-</head>
-<body>
-    <h1>Cadastro realizado com sucesso!</h1>
-    <p>Obrigado por se cadastrar.</p>
-    <a href="/">Voltar para a página inicial</a>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Cadastro realizado | CliniClick{% endblock %}
+{% block meta_description %}Confirmação de cadastro concluído na CliniClick.{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="alert alert-success" role="alert">
+      <h1 class="h5 mb-2">Cadastro realizado com sucesso!</h1>
+      <p class="mb-3">Obrigado por se cadastrar. Você já pode entrar na plataforma.</p>
+      <a class="btn btn-primary" href="{% url 'usuarios:login' %}">Fazer login</a>
+      <a class="btn btn-outline-secondary ms-2" href="/">Ir para a página inicial</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

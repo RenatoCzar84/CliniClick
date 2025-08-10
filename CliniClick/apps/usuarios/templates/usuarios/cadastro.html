@@ -1,22 +1,48 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Cadastro de Usuário</title>
-</head>
-<body>
-    <h1>Cadastro</h1>
-    <form method="POST">
-        {% csrf_token %}
-        
-        {% if form.non_field_errors %}
-            <div style="color: red;">
-                {{ form.non_field_errors }}
-            </div>
-        {% endif %}
+{% extends "base.html" %}
+{% load form_extras %}
 
-        {{ form.as_p }}
-        <button type="submit">Cadastrar</button>
+{% block title %}Cadastro de Usuário | CliniClick{% endblock %}
+{% block meta_description %}Crie sua conta para agendar consultas na CliniClick.{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+    <h1 class="h3 mb-3">Cadastro</h1>
+
+    <form method="post" enctype="multipart/form-data" novalidate class="needs-validation">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="mb-3">
+          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+          {{ field|add_class:"form-control" }}
+          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          {% for error in field.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+
+      <div class="d-grid d-sm-flex gap-2">
+        <button class="btn btn-primary" type="submit">Cadastrar</button>
+        <a class="btn btn-outline-secondary" href="{% url 'usuarios:login' %}">Já tenho conta</a>
+      </div>
+
+      <div class="text-center mt-4">
+        <p class="text-muted mb-2">ou</p>
+        <a class="btn btn-outline-dark w-100" href="/contas/google/login/">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" width="18" height="18" class="me-2" />
+          Entrar com Google
+        </a>
+      </div>
     </form>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
+

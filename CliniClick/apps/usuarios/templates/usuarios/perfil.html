@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Meu perfil | CliniClick{% endblock %}
+{% block meta_description %}Dados do perfil do usuário.{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex gap-3 align-items-center flex-wrap">
+          {% if usuario.foto %}
+            <img src="{{ usuario.foto.url }}" alt="Foto de perfil de {{ usuario.get_full_name|default:usuario.username }}" class="rounded-circle" width="96" height="96" />
+          {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:96px;height:96px;">👤</div>
+          {% endif %}
+          <div>
+            <h1 class="h4 mb-1">{{ usuario.get_full_name|default:usuario.username }}</h1>
+            <div class="text-muted">{{ usuario.email }}</div>
+          </div>
+        </div>
+
+        <hr class="my-4" />
+
+        <dl class="row">
+          <dt class="col-sm-3">CPF</dt><dd class="col-sm-9">{{ usuario.cpf }}</dd>
+          <dt class="col-sm-3">Telefone</dt><dd class="col-sm-9">{{ usuario.telefone|default:"—" }}</dd>
+          <dt class="col-sm-3">Nascimento</dt><dd class="col-sm-9">{{ usuario.data_nascimento|date:"d/m/Y"|default:"—" }}</dd>
+          <dt class="col-sm-3">Endereço</dt>
+          <dd class="col-sm-9">
+            {{ usuario.logradouro|default:"" }}{% if usuario.bairro %}, {{ usuario.bairro }}{% endif %}{% if usuario.cidade %} - {{ usuario.cidade }}{% endif %}{% if usuario.estado %}/{{ usuario.estado }}{% endif %}{% if usuario.cep %} • CEP {{ usuario.cep }}{% endif %}
+          </dd>
+          <dt class="col-sm-3">Plano de Saúde</dt><dd class="col-sm-9">{{ usuario.plano_saude|default:"—" }}</dd>
+        </dl>
+
+        <div class="d-flex gap-2">
+          <a class="btn btn-primary" href="{% url 'usuarios:editar_perfil' %}">Editar perfil</a>
+          <a class="btn btn-outline-secondary" href="{% url 'usuarios:logout' %}">Sair</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
