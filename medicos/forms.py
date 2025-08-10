@@ -14,5 +14,4 @@ class AgendamentoConsultaForm(forms.Form):
         label="Escolha o Médico",
         empty_label="--- Selecione um Médico ---",
         required=True,
-        widget=forms.Select(attrs={'id': 'id_medico', 'class': 'form-control'})
-    )
+        widget=forms.Select(attrs={'id': 'id_medico', 'class': 'form-control'}))

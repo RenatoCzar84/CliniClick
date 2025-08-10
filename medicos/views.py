@@ -24,3 +24,4 @@ def medicos_especialidades(request):
     }
 
     return render(request, 'medicos/medicos_especialidades.html', context)
+
