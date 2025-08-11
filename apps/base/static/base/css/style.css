@@ -1,0 +1,52 @@
+:root {
+    --verde-claro: #54C864;
+    --verde-escuro: #46A050;
+    --azul-turquesa: #0f6666;
+}
+
+/* Personalização Bootstrap */
+.bg-primary {
+    background-color: var(--azul-turquesa) !important;
+}
+
+.bg-light-logo {
+    background-color: #04612e; /* azul claro suave */
+}
+
+.btn-primary {
+    background-color: var(--verde-claro);
+    border-color: var(--verde-claro);
+}
+
+.btn-primary:hover {
+    background-color: var(--verde-escuro);
+    border-color: var(--verde-escuro);
+}
+
+header {
+  background-color: #145C56;
+  height: 100px; /* altura enxuta */
+  display: flex;
+  align-items: center; /* centraliza verticalmente */
+}
+
+header .container {
+  display: flex;
+  justify-content: space-between; /* logo à esquerda, links à direita */
+  align-items: center; /* alinha verticalmente */
+}
+
+header img {
+  height: 270px; /* ajusta o tamanho da logo */
+}
+
+header nav a {
+  color: white;
+  text-decoration: none;
+  margin-left: 20px; /* espaço entre links */
+  font-weight: bold;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
