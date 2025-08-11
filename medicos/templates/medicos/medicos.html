@@ -1,0 +1,36 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>Médicos e Especialidades</title>
+    <link rel="stylesheet" href="{% static 'medicos/css/estilo.css' %}">
+</head>
+<body>
+    <h2>Médicos e Especialidades</h2>
+    <form method="GET" action="{% url 'lista_medicos' %}">
+        <label for="especialidade">Especialidade Desejada:</label>
+        <select name="especialidade" id="especialidade" onchange="this.form.submit()">
+            <option value="">-- Selecione uma Especialidade --</option>
+            {% for esp in especialidades %}
+                <option value="{{ esp.id }}" {% if esp.id|stringformat:"s" == request.GET.especialidade %}selected{% endif %}>
+                    {{ esp.nome }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="medico">Escolha o Médico:</label>
+        <select name="medico" id="medico">
+            <option value="">--- Selecione um Médico ---</option>
+            {% for medico in medicos %}
+                <option value="{{ medico.id }}" {% if medico.id|stringformat:"s" == request.GET.medico %}selected{% endif %}>
+                    {{ medico.nome }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Selecionar</button>
+    </form>
+</body>
+</html>
