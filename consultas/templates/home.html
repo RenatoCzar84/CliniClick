@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+
+{% block title %}Cliniclick - Sua Saúde em Primeiro Lugar{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Cuidando da sua saúde com excelência</h1>
+        <p class="hero-subtitle">Agendamento online, profissionais qualificados e atendimento humanizado</p>
+        <div class="hero-buttons">
+            {% if user.is_authenticated %}
+                <a href="{% url 'lista_consultas' %}" class="btn btn-primary">Minhas Consultas</a>
+            {% else %}
+                <a href="{% url 'registro_paciente' %}" class="btn btn-primary">Cadastre-se Gratuitamente</a>
+                <a href="{% url 'login' %}" class="btn btn-outline">Área do Paciente</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <h2 class="section-title">Como Funciona</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3>Agendamento Simples</h3>
+                <p>Marque suas consultas em poucos cliques, 24 horas por dia</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <h3>Médicos Especialistas</h3>
+                <p>Profissionais altamente qualificados para seu cuidado</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Lembretes Automáticos</h3>
+                <p>Notificações por e-mail e SMS para não esquecer sua consulta</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Specialties Section -->
+<section class="specialties-section">
+    <div class="container">
+        <h2 class="section-title">Nossas Especialidades</h2>
+        <div class="specialties-grid">
+            <div class="specialty-card">
+                <i class="fas fa-heartbeat"></i>
+                <h3>Cardiologia</h3>
+            </div>
+            <div class="specialty-card">
+                <i class="fas fa-brain"></i>
+                <h3>Neurologia</h3>
+            </div>
+            <div class="specialty-card">
+                <i class="fas fa-bone"></i>
+                <h3>Ortopedia</h3>
+            </div>
+            <div class="specialty-card">
+                <i class="fas fa-child"></i>
+                <h3>Pediatria</h3>
+            </div>
+            <div class="specialty-card">
+                <i class="fas fa-eye"></i>
+                <h3>Oftalmologia</h3>
+            </div>
+            <div class="specialty-card">
+                <i class="fas fa-tooth"></i>
+                <h3>Odontologia</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section">
+    <div class="container">
+        <h2 class="section-title">O Que Nossos Pacientes Dizem</h2>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    <p>"Atendimento excelente, médico muito atencioso e a plataforma super fácil de usar!"</p>
+                </div>
+                <div class="testimonial-author">
+                    <p>- Ana Carolina S.</p>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    <p>"Consegui marcar minha consulta em minutos, sem precisar ligar ou esperar em filas."</p>
+                </div>
+                <div class="testimonial-author">
+                    <p>- Roberto M.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <h2>Pronto para cuidar da sua saúde?</h2>
+        <p>Cadastre-se agora e agende sua primeira consulta</p>
+        <a href="{% url 'registro_paciente' %}" class="btn btn-large">Comece Agora</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero {
+        background: linear-gradient(rgba(0, 98, 152, 0.8), rgba(0, 98, 152, 0.8)), 
+                    url('/static/images/medical-bg.jpg') no-repeat center center/cover;
+        height: 70vh;
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: white;
+        padding: 0 2rem;
+    }
+    
+    .hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .hero-title {
+        font-size: 2.8rem;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.3rem;
+        margin-bottom: 2.5rem;
+        opacity: 0.9;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+    
+    /* General Styles */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+    
+    .section-title {
+        text-align: center;
+        margin-bottom: 3rem;
+        font-size: 2.2rem;
+        color: #2c3e50;
+    }
+    
+    /* Features Section */
+    .features-section {
+        padding: 5rem 0;
+        background-color: #f9f9f9;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        color: #006298;
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature-card h3 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+    
+    /* Specialties Section */
+    .specialties-section {
+        padding: 5rem 0;
+    }
+    
+    .specialties-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .specialty-card {
+        background: #f0f8ff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .specialty-card:hover {
+        background: #006298;
+        color: white;
+    }
+    
+    .specialty-card i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #006298;
+    }
+    
+    .specialty-card:hover i {
+        color: white;
+    }
+    
+    /* Testimonials Section */
+    .testimonials-section {
+        padding: 5rem 0;
+        background-color: #f9f9f9;
+    }
+    
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .testimonial-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .testimonial-text {
+        font-style: italic;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+    
+    .testimonial-text::before {
+        content: '"';
+        font-size: 3rem;
+        color: #006298;
+        opacity: 0.2;
+        position: absolute;
+        left: -15px;
+        top: -20px;
+    }
+    
+    .testimonial-author {
+        font-weight: 600;
+        color: #006298;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+        padding: 4rem 0;
+        text-align: center;
+        background: #006298;
+        color: white;
+    }
+    
+    .cta-section h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .cta-section p {
+        margin-bottom: 2rem;
+        font-size: 1.2rem;
+    }
+    
+    /* Buttons */
+    .btn {
+        display: inline-block;
+        padding: 0.8rem 1.8rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background: #006298;
+        color: white;
+        border: 2px solid #006298;
+    }
+    
+    .btn-primary:hover {
+        background: transparent;
+        color: white;
+    }
+    
+    .btn-outline {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+    
+    .btn-outline:hover {
+        background: white;
+        color: #006298;
+    }
+    
+    .btn-large {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.2rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .hero-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}

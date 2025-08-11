@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Minhas Consultas{% endblock %}
+
+{% block content %}
+<h2>Minhas Consultas</h2>
+<ul>
+    {% for consulta in consultas %}
+    <li>
+        <a href="{% url 'detalhe_consulta' consulta.id %}">
+            {{ consulta.data_hora }} - Dr. {{ consulta.medico.user.last_name }}
+        </a>
+        ({{ consulta.realizada|yesno:"Realizada,Agendada" }})
+    </li>
+    {% empty %}
+    <li>Nenhuma consulta agendada.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

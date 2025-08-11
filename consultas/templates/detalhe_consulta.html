@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Consulta #{{ consulta.id }}{% endblock %}
+
+{% block content %}
+<h2>Consulta em {{ consulta.data_hora }}</h2>
+<p><strong>Médico:</strong> Dr. {{ consulta.medico.user.get_full_name }}</p>
+<p><strong>Paciente:</strong> {{ consulta.paciente.user.get_full_name }}</p>
+<p><strong>Descrição:</strong> {{ consulta.descricao }}</p>
+<p><strong>Status:</strong> {{ consulta.realizada|yesno:"Realizada,Agendada" }}</p>
+
+{% if user.medico %}
+    <a href="#">Editar Registro Médico</a>
+{% endif %}
+{% endblock %}
