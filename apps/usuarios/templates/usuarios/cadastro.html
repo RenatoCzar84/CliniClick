@@ -1,22 +1,27 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Cadastro de Usuário</title>
-</head>
-<body>
-    <h1>Cadastro</h1>
-    <form method="POST">
-        {% csrf_token %}
-        
-        {% if form.non_field_errors %}
-            <div style="color: red;">
-                {{ form.non_field_errors }}
-            </div>
-        {% endif %}
+{% extends "base/base.html" %}
+{% load static %}
 
-        {{ form.as_p }}
-        <button type="submit">Cadastrar</button>
+{% block title %}Cadastro - CliniClick{% endblock %}
+
+{% block content %}
+<section aria-labelledby="titulo-cadastro" class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <h1 id="titulo-cadastro" class="h3 mb-4">Cadastro de Usuário</h1>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      {{ form.as_p }}
+
+      <button type="submit" class="btn btn-primary">Cadastrar</button>
     </form>
-</body>
-</html>
+  </div>
+</section>
+{% endblock %}
+
