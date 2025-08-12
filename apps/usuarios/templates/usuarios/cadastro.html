@@ -8,7 +8,7 @@
     <h1>Cadastro</h1>
     <form method="POST">
         {% csrf_token %}
-        
+
         {% if form.non_field_errors %}
             <div style="color: red;">
                 {{ form.non_field_errors }}
@@ -16,7 +16,191 @@
         {% endif %}
 
         {{ form.as_p }}
+        <span id="erro-cpf" style="color:#c00; font-size:0.9rem; display:none;"></span>
+
         <button type="submit">Cadastrar</button>
     </form>
+
+    <!-- ViaCEP -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const cepInput = document.getElementById('id_cep');
+            if (!cepInput) return;
+
+            function limpaEndereco() {
+                const f = (id) => document.getElementById(id);
+                if (f('id_rua'))     f('id_rua').value = '';
+                if (f('id_bairro'))  f('id_bairro').value = '';
+                if (f('id_cidade'))  f('id_cidade').value = '';
+                if (f('id_estado'))  f('id_estado').value = '';
+            }
+
+            cepInput.addEventListener('blur', function () {
+                const cep = (cepInput.value || '').replace(/\D/g, '');
+                if (cep.length !== 8) {
+                    limpaEndereco();
+                    return;
+                }
+
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && !data.erro) {
+                            const rua    = document.getElementById('id_rua');
+                            const bairro = document.getElementById('id_bairro');
+                            const cidade = document.getElementById('id_cidade');
+                            const estado = document.getElementById('id_estado');
+
+                            if (rua)    rua.value    = data.logradouro || '';
+                            if (bairro) bairro.value = data.bairro || '';
+                            if (cidade) cidade.value = data.localidade || '';
+                            if (estado) estado.value = data.uf || '';
+                        } else {
+                            limpaEndereco();
+                            alert('CEP não encontrado.');
+                        }
+                    })
+                    .catch(() => {
+                        limpaEndereco();
+                        alert('Erro ao consultar o CEP. Tente novamente.');
+                    });
+            });
+        });
+    </script>
+
+    <!-- Máscaras + validações -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form");
+        const cpfInput = document.getElementById('id_cpf');
+        const telInput = document.getElementById('id_telefone');
+        const cepInput = document.getElementById('id_cep');
+        const erroSpan = document.getElementById('erro-cpf');
+
+        const nomeInput = document.getElementById('id_first_name');
+        const sobrenomeInput = document.getElementById('id_last_name');
+
+        function onlyDigits(value) {
+            return (value || '').replace(/\D/g, '');
+        }
+
+        // ----- Formatação -----
+        function formatCPF(value) {
+            const v = onlyDigits(value).slice(0, 11);
+            const p1 = v.slice(0, 3);
+            const p2 = v.slice(3, 6);
+            const p3 = v.slice(6, 9);
+            const dv = v.slice(9, 11);
+            let out = p1;
+            if (p2) out += '.' + p2;
+            if (p3) out += '.' + p3;
+            if (dv) out += '-' + dv;
+            return out;
+        }
+
+        function formatTelefone(value) {
+            const v = onlyDigits(value).slice(0, 11);
+            const ddd = v.slice(0, 2);
+            const is11 = v.length > 10;
+            const p1 = is11 ? v.slice(2, 7) : v.slice(2, 6);
+            const p2 = is11 ? v.slice(7, 11) : v.slice(6, 10);
+            let out = ddd ? `(${ddd})` : '';
+            if (p1) out += p1;
+            if (p2) out += '-' + p2;
+            return out;
+        }
+
+        function formatCEP(value) {
+            const v = onlyDigits(value).slice(0, 8);
+            const p1 = v.slice(0, 5);
+            const p2 = v.slice(5, 8);
+            return p2 ? `${p1}-${p2}` : p1;
+        }
+
+        // ----- Validação matemática CPF -----
+        function cpfValido(value) {
+            const cpf = onlyDigits(value);
+            if (cpf.length !== 11) return false;
+            if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+            function dv(nums, pesoInicial) {
+                let soma = 0, peso = pesoInicial;
+                for (let i = 0; i < nums.length; i++, peso--) {
+                    soma += parseInt(nums[i], 10) * peso;
+                }
+                const r = (soma * 10) % 11;
+                return (r === 10) ? 0 : r;
+            }
+
+            const d1 = dv(cpf.slice(0, 9), 10);
+            const d2 = dv(cpf.slice(0, 9) + d1, 11);
+            return cpf.endsWith(String(d1) + String(d2));
+        }
+
+        function mostrarErroCPF(msg) {
+            erroSpan.textContent = msg;
+            erroSpan.style.display = msg ? "inline" : "none";
+            if (cpfInput) cpfInput.setAttribute("aria-invalid", msg ? "true" : "false");
+        }
+
+        // ----- Só números (CPF / Telefone / CEP) -----
+        function allowOnlyDigits(e) {
+            const ctrl = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
+            if (ctrl.includes(e.key) || e.ctrlKey || e.metaKey) return;
+            if (!/\d/.test(e.key)) e.preventDefault();
+        }
+
+        // ----- Só letras (Nome / Sobrenome) -----
+        function allowOnlyLetters(e) {
+            const ctrl = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End', ' '];
+            if (ctrl.includes(e.key) || e.ctrlKey || e.metaKey) return;
+            if (!/^[A-Za-zÀ-ÿ]$/.test(e.key)) e.preventDefault();
+        }
+
+        function attachMask(input, formatter) {
+            if (!input) return;
+            input.addEventListener('keypress', allowOnlyDigits);
+            input.addEventListener('input', function () {
+                input.value = formatter(input.value);
+            });
+            input.addEventListener('paste', function (e) {
+                e.preventDefault();
+                const text = (e.clipboardData || window.clipboardData).getData('text');
+                input.value = formatter(text);
+            });
+            input.addEventListener('blur', function () {
+                input.value = formatter(input.value);
+            });
+        }
+
+        attachMask(cpfInput, formatCPF);
+        attachMask(telInput, formatTelefone);
+        attachMask(cepInput, formatCEP);
+
+        if (nomeInput) nomeInput.addEventListener('keypress', allowOnlyLetters);
+        if (sobrenomeInput) sobrenomeInput.addEventListener('keypress', allowOnlyLetters);
+
+        if (cpfInput) {
+            cpfInput.addEventListener("blur", function () {
+                if (!cpfValido(cpfInput.value)) {
+                    mostrarErroCPF("CPF inválido. Verifique os dígitos.");
+                } else {
+                    mostrarErroCPF("");
+                }
+            });
+        }
+
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                if (cpfInput && !cpfValido(cpfInput.value)) {
+                    e.preventDefault();
+                    mostrarErroCPF("CPF inválido. Corrija para continuar.");
+                    cpfInput.focus();
+                }
+            });
+        }
+    });
+    </script>
+
 </body>
 </html>
