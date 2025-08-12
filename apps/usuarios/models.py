@@ -6,7 +6,9 @@ from django.db import models
 
 class Usuario(AbstractUser):
     cep = models.CharField(max_length=10, blank=True)
-    logradouro = models.CharField(max_length=100, blank=True)
+    rua = models.CharField(max_length=100, blank=True)
+    numero = models.CharField(max_length=10, blank=True)
+    complemento = models.CharField(max_length=100, blank=True) 
     bairro = models.CharField(max_length=100, blank=True)
     cidade = models.CharField(max_length=100, blank=True)
     estado = models.CharField(max_length=2, blank=True)

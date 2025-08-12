@@ -14,7 +14,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.base.urls')),
     path('usuarios/', include('apps.usuarios.urls')),
-    path('medicos/', include('medicos.urls')),
+    path('medicos/', include('apps.medicos.urls')),
 ]
 
 # Servir arquivos estáticos durante o desenvolvimento
