@@ -9,11 +9,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.base import views as base_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.base.urls')),
-    path('usuarios/', include('apps.usuarios.urls')),
+    path('usuarios/', include(('apps.usuarios.urls', 'usuarios'), namespace='usuarios')),
 ]
 
 # Servir arquivos estáticos durante o desenvolvimento

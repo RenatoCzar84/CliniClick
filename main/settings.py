@@ -69,7 +69,7 @@ ROOT_URLCONF = 'main.urls'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Tempo de inatividade antes de expirar a sessão, em segundos
-SESSION_COOKIE_AGE = 60 * 30  # 30 minutos
+SESSION_COOKIE_AGE = 3 * 60 #180s
 
 # Renova o prazo a cada requisição
 SESSION_SAVE_EVERY_REQUEST = True
