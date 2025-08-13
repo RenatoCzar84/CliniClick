@@ -16,6 +16,7 @@ class Usuario(AbstractUser):
     cpf = models.CharField(max_length=14, blank=True)
     data_nascimento = models.DateField(null=True, blank=True)
     plano_saude = models.CharField(max_length=100, blank=True)
+    apelido = models.CharField(max_length=30, blank=True, default='')
 
     def __str__(self):
         return self.username
