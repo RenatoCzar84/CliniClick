@@ -1,0 +1,13 @@
+{% extends 'base/base.html' %}
+{% block title %}Painel - CliniClick{% endblock %}
+{% block content %}
+<h2 class="mb-3">Painel do Usuário</h2>
+<p>Bem-vindo, <strong>{{ usuario.first_name|default:usuario.username }}</strong>!</p>
+
+<ul class="list-unstyled">
+  <li><strong>Usuário:</strong> {{ usuario.username }}</li>
+  <li><strong>Email:</strong> {{ usuario.email }}</li>
+  <li><strong>Telefone:</strong> {{ usuario.telefone }}</li>
+  <li><strong>Endereço:</strong> {{ usuario.rua }}, {{ usuario.numero }}{% if usuario.complemento %} - {{ usuario.complemento }}{% endif %}, {{ usuario.bairro }} - {{ usuario.cidade }}/{{ usuario.estado }} | CEP {{ usuario.cep }}</li>
+</ul>
+{% endblock %}
