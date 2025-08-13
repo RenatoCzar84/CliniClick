@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'usuarios.Usuario'
+LOGIN_URL = 'login_usuario'
+LOGIN_REDIRECT_URL = 'painel_usuario'
+LOGOUT_REDIRECT_URL = 'login_usuario'
 
 
 # Application definition
@@ -40,8 +43,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.base',
     'apps.usuarios',
-    'apps.medicos',
     ]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    # se usar outro host/IP:
+    'http://192.168.0.10:8000',
+]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.10']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -54,6 +64,16 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'main.urls'
+
+# Sessão expira ao fechar o navegador (cookie sem Max-Age/Expires)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Tempo de inatividade antes de expirar a sessão, em segundos
+SESSION_COOKIE_AGE = 60 * 30  # 30 minutos
+
+# Renova o prazo a cada requisição
+SESSION_SAVE_EVERY_REQUEST = True
+
 
 TEMPLATES = [
     {
@@ -77,10 +97,10 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+  'default': {
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': BASE_DIR / 'db.sqlite3',   # fica na raiz do projeto
+  }
 }
 
 
