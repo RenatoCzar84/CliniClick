@@ -3,7 +3,12 @@ from django.db import IntegrityError
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from django.http import HttpResponse, HttpResponseNotAllowed
+from django.views.decorators.csrf import csrf_exempt
+
 from .forms import UsuarioForm
+
 
 def cadastro_usuario(request):
     if request.method == 'POST':
@@ -12,19 +17,16 @@ def cadastro_usuario(request):
             try:
                 form.save()
                 messages.success(request, 'Usuário criado com sucesso! Faça login abaixo.')
-                # ajuste o nome da rota da sua home se for diferente de 'index'
+                # redireciona para a Home (onde está o form de login no header)
                 return redirect('index')
             except IntegrityError:
                 form.add_error(None, "Erro ao salvar. Verifique CPF/usuário/email já existentes.")
-        # se inválido, cai para o render abaixo com os erros
+        # se inválido ou deu IntegrityError, re-renderiza com erros (sem limpar)
         return render(request, 'usuarios/cadastro.html', {'form': form, 'limpar': False})
     else:
+        # GET: renderiza com campos limpos (para burlar autocomplete)
         form = UsuarioForm()
         return render(request, 'usuarios/cadastro.html', {'form': form, 'limpar': True})
-
-
-def cadastro_sucesso(request):
-    return render(request, 'usuarios/cadastro_sucesso.html')
 
 
 def login_usuario(request):
@@ -37,29 +39,50 @@ def login_usuario(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Bem-vindo(a), {user.first_name or user.username}!')
-            return redirect(proximo or 'painel_usuario')
+
+            # Se veio ?next=/algum/caminho, usa esse caminho; senão, painel do usuário
+            destino = proximo if proximo else reverse('usuarios:painel_usuario')
+            return redirect(destino)
         else:
             messages.error(request, 'Usuário ou senha inválidos.')
-            # volta para a página de origem (ou home) para reexibir o form do header
             return redirect(request.META.get('HTTP_REFERER', '/'))
+    return redirect('/')
 
-    # GET: não temos página de login dedicada; manda para a home
-    return redirect('/')    
-
-
-# === PÁGINA PROTEGIDA DO USUÁRIO ===
-@login_required
-def painel_usuario(request):
-    """
-    Página interna do usuário após login.
-    Crie o template 'usuarios/painel.html' herdando de base/base.html.
-    """
-    return render(request, 'usuarios/painel.html', {'usuario': request.user})
-
-
-# === LOGOUT ===
 @login_required
 def sair_usuario(request):
     logout(request)
     messages.success(request, 'Você saiu da sua conta.')
-    return redirect('login_usuario')  # ou: return redirect('cadastro_usuario') / home
+    # pode mandar pra home ou para a rota de login do namespace
+    return redirect('usuarios:login')
+
+
+@login_required
+def painel_usuario(request):
+    """Página interna do usuário após login."""
+    return render(request, 'usuarios/painel.html', {'usuario': request.user})
+
+
+@login_required
+def sair_usuario(request):
+    logout(request)
+    messages.success(request, 'Você saiu da sua conta.')
+    return redirect('index')  # ou 'login_usuario' se preferir voltar ao form de login
+
+
+# ===== Apoio à expiração de sessão (popup/JS) =====
+
+@csrf_exempt
+def logout_beacon(request):
+    # navigator.sendBeacon faz POST simples sem CSRF; por isso csrf_exempt
+    if request.method == 'POST':
+        logout(request)
+        return HttpResponse('ok')
+    return HttpResponse(status=405)
+
+
+@login_required
+def keepalive(request):
+    # renova a sessão
+    request.session.modified = True
+    return HttpResponse(status=204)
+
