@@ -26,6 +26,8 @@ SECRET_KEY = 'django-insecure-4hxp9ra#&tqu!e%(kc_q^x*w1$7povfljnbu1c7^2k4g*^49t6
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+# Usuario customizado
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
 
@@ -41,7 +43,7 @@ INSTALLED_APPS = [
     'apps.base',
     'apps.usuarios',
     'apps.medicos',
-    ]
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -58,8 +60,8 @@ ROOT_URLCONF = 'main.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
+        'DIRS': [BASE_DIR / 'templates'],  # diretório global opcional
+        'APP_DIRS': True,                  # busca templates nos apps
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
@@ -88,18 +90,10 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 
@@ -107,13 +101,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'pt-br'
-
 TIME_ZONE = 'America/Sao_Paulo'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
@@ -121,19 +111,32 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / 'static',
+    BASE_DIR / 'apps/base/static',
 ]
+# Opcional para collectstatic em produção:
+# STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_DIRS = [
-    BASE_DIR / "apps/base/static",
-]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/usuarios/login/'
+
+# Auth redirects
+LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+
+# ===== Email (envio real via Gmail) =====
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "marcelasantorov@gmail.com"
+# Use sua SENHA DE APP (16 caracteres, sem espaços). Ideal pegar de variável de ambiente:
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "gyyrbejnfqiwdxmd")
+DEFAULT_FROM_EMAIL = "CliniClick <marcelasantorov@gmail.com>"
+

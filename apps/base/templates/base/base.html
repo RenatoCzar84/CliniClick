@@ -9,20 +9,31 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'base/css/style.css' %}">
+    <meta name="description" content="CliniClick — sua clínica online para consultas e agendamentos.">
   </head>
   <body>
     <header class="bg-primary text-white py-0">
       <div class="container d-flex justify-content-between align-items-center">
-        <img src="{% static 'base/img/logo.png' %}" alt="CliniClick">
-        <nav>
+        <img src="{% static 'base/img/logo.png' %}" alt="Logomarca CliniClick">
+        <nav class="d-flex align-items-center">
           <a href="/" class="text-white me-3">Home</a>
-          <a href="{% url 'usuarios:cadastro_usuario' %}" class="text-white">Cadastro</a>
+
+          {% if user.is_authenticated %}
+            <span class="me-3">Olá, {{ user.first_name|default:user.username }}</span>
+            <a href="{% url 'agendamento' %}" class="text-white me-3">Agendar</a>
+            <form method="post" action="{% url 'usuarios:logout' %}" class="d-inline m-0 p-0">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-link text-white p-0">Sair</button>
+            </form>
+          {% else %}
+            <a href="/" class="text-white me-3">Entrar</a>
+            <a href="{% url 'usuarios:cadastro_usuario' %}" class="text-white">Cadastro</a>
+          {% endif %}
         </nav>
       </div>
     </header>
 
     <main class="container my-5">
-      {# Bloco de mensagens do Django — fica acima do conteúdo #}
       {% if messages %}
         <div aria-live="polite" aria-atomic="true" class="mb-3">
           {% for message in messages %}
@@ -51,3 +62,4 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
+
