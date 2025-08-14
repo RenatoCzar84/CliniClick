@@ -1,123 +1,107 @@
 {% load static %}
+{% now "U" as ts %}
 <!DOCTYPE html>
-<html lang="pt-BR">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>{% block title %}CliniClick{% endblock %}</title>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Cliniclick{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-		<!-- Bootstrap CSS -->
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-		<!-- CSS do projeto -->
-		<link rel="stylesheet" href="{% static 'base/css/style.css' %}" />
-	</head>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-	<body>
-		<header class="bg-primary text-white py-2">
-			<div class="container d-flex align-items-center justify-content-between gap-3 flex-wrap">
-				<!-- Logo + Menu -->
-				<div class="d-flex align-items-center gap-3">
-					<img src="{% static 'base/img/logo.png' %}" alt="CliniClick" style="height: 48px" />
-					<nav class="d-flex align-items-center gap-3">
-						<a href="/" class="text-white text-decoration-none">Home</a>
-						<a href="{% url 'usuarios:cadastro' %}" class="text-white text-decoration-none">Cadastro</a>
-						{% if user.is_authenticated %}
-						<a href="{% url 'usuarios:painel_usuario' %}" class="text-white text-decoration-none">Painel</a>
-						{% endif %}
-					</nav>
-				</div>
+  <!-- Estilos -->
+  <link href="{% static 'base/css/style.css' %}" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="{% url 'index' %}">Cliniclick</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div id="nav" class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:cadastro' %}">Cadastro</a></li>
+          {% if user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:painel_usuario' %}">Painel</a></li>
+          {% endif %}
+        </ul>
 
-				<!-- À direita: saudação + sair OU formulário de login -->
-				{% if user.is_authenticated %}
-				<div class="d-flex align-items-center gap-3">
-					<span class="small mb-0"> Olá, <strong>{{ user.first_name|default:user.username }}</strong> </span>
-					<a class="btn btn-outline-light btn-sm" href="{% url 'usuarios:logout' %}">Sair</a>
-				</div>
-				{% else %}
-				<form class="d-flex align-items-end gap-2" method="post" action="{% url 'usuarios:login' %}">
-					{% csrf_token %}
-					<div>
-						<label for="id_header_username" class="form-label mb-0 small">Usuário</label>
-						<input type="text" name="username" id="id_header_username" class="form-control form-control-sm" required />
-					</div>
-					<div>
-						<label for="id_header_password" class="form-label mb-0 small">Senha</label>
-						<input type="password" name="password" id="id_header_password" class="form-control form-control-sm" required />
-					</div>
-					<button type="submit" class="btn btn-light btn-sm">Entrar</button>
-				</form>
-				{% endif %}
-			</div>
-		</header>
-		<main class="container my-4">
-			{% if messages %}
-			<div class="container mt-3">
-				{% for message in messages %}
-				<div class="alert alert-success alert-dismissible fade show" role="alert">
-					{{ message }}
-					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-				</div>
-				{% endfor %}
-			</div>
-			{% endif %} {% block content %}{% endblock %}
-		</main>
+        {% if user.is_authenticated %}
+          <span class="me-3">Olá, <strong>{{ user.first_name|default:user.username }}</strong></span>
+          <a class="btn btn-outline-danger" href="{% url 'usuarios:sair_usuario' %}">Sair</a>
+        {% else %}
+          <form class="d-flex gap-2" method="post" action="{% url 'usuarios:login_usuario' %}">
+            {% csrf_token %}
+            <input class="form-control" name="username" placeholder="Usuário" required>
+            <input class="form-control" name="password" type="password" placeholder="Senha" required>
+            {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+            <button class="btn btn-primary" type="submit">Entrar</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
 
-		<footer class="bg-dark text-white text-center p-3 mt-5">
-			<p>© {{ now|date:"Y" }} - CliniClick</p>
-		</footer>
+  <!-- CONTEÚDO -->
+  <div class="container py-3">
+    {% if messages %}
+      <div class="mb-3">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
 
-		<!-- Popup de expiração de sessão -->
-		<div
-			id="sessao-popup"
-			style="
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-         "
-		>
-			<div
-				style="
-               background: #fff;
-               max-width: 420px;
-               width: 90%;
-               border-radius: 12px;
-               padding: 20px;
-               box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-            "
-			>
-				<h5 style="margin-top: 0">Sessão quase expirada</h5>
-				<p style="margin: 8px 0 16px">
-					Você ficou inativo por 1 minuto. Sua sessão será encerrada em
-					<strong><span id="contador-sessao">120</span>s</strong>.
-				</p>
-				<div style="display: flex; gap: 8px; justify-content: flex-end">
-					<button id="btn-voltei" class="btn btn-primary">Voltei</button>
-				</div>
-			</div>
-		</div>
-		<!-- Config para o JS externo -->
-		<div id="sessao-popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center;">
-			<div style="background:#fff; max-width:420px; width:90%; border-radius:12px; padding:20px;">
-				<h5 style="margin-top:0">Sessão quase expirada</h5>
-				<p>
-					Você ficou inativo por 1 minuto. Sua sessão será encerrada em <strong><span id="contador-sessao">120</span>s</strong>.
-				</p>
-				<div style="display:flex; gap:8px; justify-content:flex-end;">
-					<button id="btn-voltei" class="btn btn-primary">Voltei</button>
-				</div>
-			</div>
-		</div>
+  {% if user.is_authenticated %}
+    <!-- CONFIG DA SESSÃO (só quando logado) -->
+    <div id="sessao-config"
+         data-keepalive-url="{% url 'usuarios:keepalive' %}"
+         data-logout-beacon-url="{% url 'usuarios:logout_beacon' %}"
+         data-logout-url="{% url 'usuarios:sair_usuario' %}"
+         data-home-url="{% url 'index' %}"
+         data-popup-min-inatividade="0.5"
+         data-contagem-regressiva="0.5"
+         data-tempo-max-sessao="3"
+         data-debug="1">
+    </div>
 
-		<div id="sessao-config" data-auth="{{ user.is_authenticated|yesno:'1,0' }}" data-logout-url="/usuarios/logout-beacon/" data-keepalive-url="/usuarios/keepalive/" data-home-url="/"></div>
+    <!-- Modal Bootstrap usado pelo popup -->
+    <div class="modal fade" id="sessaoModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3">
+          <div class="modal-header card-header-gradient text-white">
+            <h5 class="modal-title">Sessão prestes a expirar</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Você ficou inativo(a). Sua sessão será encerrada em
+            <strong><span id="contador-sessao">120</span>s</strong>.
+          </div>
+          <div class="modal-footer">
+            <button id="btn-voltei" type="button" class="btn btn-success">Voltei</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 
-		<!-- Carrega o script externo -->
-		<script src="{% static 'base/js/sessao.js' %}"></script>
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-		<!-- Bootstrap JS -->
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-	</body>
+  <!-- SEMPRE carregar; se não houver #sessao-config, o script apenas loga e sai -->
+  <script src="{% static 'base/js/sessao.js' %}?v={{ ts }}"></script>
+  <script>
+    // Sanidade: isto deve SEMPRE aparecer no console.
+    console.log("[sessao] script carregado; cfg existe?", !!document.getElementById("sessao-config"));
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
 </html>
