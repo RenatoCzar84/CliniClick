@@ -41,7 +41,7 @@ header img {
 }
 
 header nav a {
-  color: white;
+  color: rgb(47, 231, 145);
   text-decoration: none;
   margin-left: 20px; /* espaço entre links */
   font-weight: bold;
@@ -68,5 +68,48 @@ header nav a:hover {
 
 #id_estado { max-width: 120px; }
 .form-control, .form-select { width: 100%; }
+
+.health-badge{display:grid;place-items:center;padding:1.5rem 0;background:#f7fcfa}
+.health-badge .inner{
+  width:120px;height:120px;border-radius:999px;
+  display:grid;place-items:center;
+  background:
+    radial-gradient(120px 120px at 30% 30%, rgba(84,200,100,.12), transparent 60%),
+    #fff;
+  border:1px solid #e6f2ee;
+  box-shadow:0 6px 18px rgba(0,0,0,.04);
+}
+.health-badge i{
+  font-size:3rem;color:var(--verde-claro,#bfe0c4)
+}
+
+.fancy-title { font-family: 'Poppins','Inter',sans-serif; }
+.text-brand  { color: var(--verde-claro, #54C864) !important; }
+
+/* Card de atalho com hover suave */
+.card-cta { transition: transform .12s ease, box-shadow .12s ease; }
+.card-cta:hover { transform: translateY(-2px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.08); }
+
+.perfil-list li { line-height: 1.35; }
+.perfil-list .text-muted { color: #6b7280 !important; } /* cinza suave */
+
+/* ====== Painel (estilo isolado) ====== */
+.painel-skin .perfil-list { font-size: 1.1rem; }
+.painel-skin .perfil-icone { font-size: 2rem; line-height: 1; }
+
+.painel-skin .card-cta-icone { font-size: 2.75rem; line-height: 1; }
+.painel-skin .card-cta { transition: transform .12s ease, box-shadow .12s ease; }
+.painel-skin .card-cta:hover { transform: translateY(-2px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.08); }
+
+/* Alinhamento compacto do login no navbar */
+.navbar-auth { gap: .5rem; }
+.navbar-login .form-control.form-control-sm {
+  width: 150px;            /* largura fixa para não quebrar */
+}
+@media (min-width: 768px) { /* em telas >= md, dá um respiro */
+  .navbar-login .form-control.form-control-sm { width: 180px; }
+}
+.navbar-auth .btn { white-space: nowrap; } /* evita quebrar “Entrar”/“Cadastro” */
+
 
 

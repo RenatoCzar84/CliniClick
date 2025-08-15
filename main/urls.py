@@ -10,11 +10,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from apps.base import views as base_views
+from apps.usuarios import views as uviews
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.base.urls')),
+    path("agenda/", include(("apps.agenda.urls", "agenda"), namespace="agenda")),
     path('usuarios/', include(('apps.usuarios.urls', 'usuarios'), namespace='usuarios')),
+    path("usuarios/login/", uviews.login_usuario, name="login_usuario"),
 ]
 
 # Servir arquivos estáticos durante o desenvolvimento

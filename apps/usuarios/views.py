@@ -1,4 +1,7 @@
 from django.contrib import messages
+from datetime import date
+from django.utils import timezone
+from apps.agenda.models import Agendamento
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
@@ -33,7 +36,22 @@ def login_usuario(request):
 
 @login_required
 def painel_usuario(request):
-    return render(request, "usuarios/painel.html")
+    idade = _idade(getattr(request.user, "data_nascimento", None))
+    agora = timezone.now()
+
+    qs = (Agendamento.objects
+          .select_related("especialidade", "medico", "exame_tipo")
+          .filter(usuario=request.user))
+
+    proximos = qs.filter(data_hora__gte=agora).order_by("data_hora")[:10]
+    anteriores = qs.filter(data_hora__lt=agora).order_by("-data_hora")[:10]
+
+    return render(request, "usuarios/painel.html", {
+        "idade": idade,
+        "prox_agendamentos": proximos,
+        "ant_agendamentos": anteriores,
+        "tab": request.GET.get("tab") or "",
+    })
 
 def sair_usuario(request):
     logout(request)  # invalida a sessão no backend
@@ -41,12 +59,22 @@ def sair_usuario(request):
     next_url = request.GET.get("next")
     return redirect(next_url or "index")
 
+@csrf_exempt
 def keepalive(request):
-    # só tocar a sessão
-    request.session.modified = True
+    # Aceita POST/GET sem CSRF; só renova se estiver autenticado
+    if request.user.is_authenticated:
+        request.session.modified = True
     return JsonResponse({"ok": True})
 
+@csrf_exempt
 def logout_beacon(request):
-    # usado pelo sendBeacon ao expirar
-    logout(request)
-    return HttpResponse(status=204)
+    # Opcional: se você ainda usa o beacon em algum lugar
+    if request.user.is_authenticated:
+        logout(request)
+    return JsonResponse({"ok": True})
+
+def _idade(dn):
+    if not dn:
+        return None
+    hoje = date.today()
+    return hoje.year - dn.year - ((hoje.month, hoje.day) < (dn.month, dn.day))

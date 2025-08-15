@@ -1,107 +1,100 @@
 {% load static %}
-{% now "U" as ts %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <title>{% block title %}Cliniclick{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Estilos -->
-  <link href="{% static 'base/css/style.css' %}" rel="stylesheet">
-  {% block extra_css %}{% endblock %}
-</head>
-<body>
-  <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="{% url 'index' %}">Cliniclick</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div id="nav" class="collapse navbar-collapse">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:cadastro' %}">Cadastro</a></li>
-          {% if user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:painel_usuario' %}">Painel</a></li>
-          {% endif %}
-        </ul>
-
-        {% if user.is_authenticated %}
-          <span class="me-3">Olá, <strong>{{ user.first_name|default:user.username }}</strong></span>
-          <a class="btn btn-outline-danger" href="{% url 'usuarios:sair_usuario' %}">Sair</a>
-        {% else %}
-          <form class="d-flex gap-2" method="post" action="{% url 'usuarios:login_usuario' %}">
-            {% csrf_token %}
-            <input class="form-control" name="username" placeholder="Usuário" required>
-            <input class="form-control" name="password" type="password" placeholder="Senha" required>
-            {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
-            <button class="btn btn-primary" type="submit">Entrar</button>
-          </form>
-        {% endif %}
-      </div>
-    </div>
-  </nav>
-
-  <!-- CONTEÚDO -->
-  <div class="container py-3">
-    {% if messages %}
-      <div class="mb-3">
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-    {% block content %}{% endblock %}
-  </div>
-
+   <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>{% block title %}Cliniclick{% endblock %}</title>
+      <!-- Bootstrap 5 + Icons -->
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+      <!-- Fonts bonitas -->
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+      <!-- CSS do projeto -->
+      <link rel="stylesheet" href="{% static 'base/css/style.css' %}">
+      <!-- Ajustes mínimos de tipografia e cor de destaque -->
+      <style>
+         body{ font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial,sans-serif; }
+         .fancy-title{ font-family:'Poppins','Inter',sans-serif; }
+         .text-brand{ color: var(--verde-claro,#54C864) !important; } /* usa seu verde */
+      </style>
+      {% block extra_head %}{% endblock %}
+   </head>
+   <body>
+      <!-- Navbar -->
+      <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+         <div class="container">
+            <a class="navbar-brand fancy-title" href="{% url 'index' %}">Cliniclick</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+               <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                  <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
+                  {% if user.is_authenticated %}
+                  <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:painel_usuario' %}">Painel</a></li>
+                  {% endif %}
+               </ul>
+               <!-- Direita -->
+<div class="ms-auto d-flex align-items-center gap-2 navbar-auth">
   {% if user.is_authenticated %}
-    <!-- CONFIG DA SESSÃO (só quando logado) -->
-    <div id="sessao-config"
-         data-keepalive-url="{% url 'usuarios:keepalive' %}"
-         data-logout-beacon-url="{% url 'usuarios:logout_beacon' %}"
-         data-logout-url="{% url 'usuarios:sair_usuario' %}"
-         data-home-url="{% url 'index' %}"
-         data-popup-min-inatividade="0.5"
-         data-contagem-regressiva="0.5"
-         data-tempo-max-sessao="3"
-         data-debug="1">
-    </div>
+    <span class="navbar-text text-white-50 d-none d-md-inline">
+      Olá, {{ user.first_name|default:user.username }}
+    </span>
+    <a class="btn btn-sm btn-light" href="{% url 'usuarios:sair_usuario' %}">Sair</a>
+  {% else %}
+    <form class="d-flex align-items-center gap-2 navbar-login"
+          method="post" action="{% url 'usuarios:login_usuario' %}">
+      {% csrf_token %}
+      <input type="text" name="username" class="form-control form-control-sm"
+             placeholder="Usuário" required>
+      <input type="password" name="password" class="form-control form-control-sm"
+             placeholder="Senha" required>
+      <button class="btn btn-sm btn-light" type="submit">Entrar</button>
+    </form>
 
-    <!-- Modal Bootstrap usado pelo popup -->
-    <div class="modal fade" id="sessaoModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3">
-          <div class="modal-header card-header-gradient text-white">
-            <h5 class="modal-title">Sessão prestes a expirar</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            Você ficou inativo(a). Sua sessão será encerrada em
-            <strong><span id="contador-sessao">120</span>s</strong>.
-          </div>
-          <div class="modal-footer">
-            <button id="btn-voltei" type="button" class="btn btn-success">Voltei</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <a class="btn btn-sm btn-outline-light" href="{% url 'usuarios:cadastro' %}">
+      <i class="bi bi-person-plus"></i> Cadastro
+    </a>
   {% endif %}
-
-  <!-- SCRIPTS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- SEMPRE carregar; se não houver #sessao-config, o script apenas loga e sai -->
-  <script src="{% static 'base/js/sessao.js' %}?v={{ ts }}"></script>
-  <script>
-    // Sanidade: isto deve SEMPRE aparecer no console.
-    console.log("[sessao] script carregado; cfg existe?", !!document.getElementById("sessao-config"));
-  </script>
-
-  {% block extra_js %}{% endblock %}
-</body>
+</div>
+            </div>
+         </div>
+      </nav>
+      <!-- Mensagens Django -->
+      <div class="container mt-3">
+         {% if messages %}
+         <div class="mb-2">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+               {{ message }}
+               <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+         </div>
+         {% endif %}
+      </div>
+      <!-- Conteúdo -->
+      <main class="container py-3">
+         {% block content %}{% endblock %}
+      </main>
+      <!-- Popup de sessão/inatividade (só logado) -->
+      {% if user.is_authenticated %}
+      <div id="sessao-config"
+         data-logged="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+         data-debug="0"
+         data-keepalive-url="{% url 'usuarios:keepalive' %}"
+         data-logout-url="{% url 'usuarios:sair_usuario' %}"
+         data-index-url="{% url 'index' %}"
+         data-idle-ms="10000"          
+         data-countdown-ms="30000"     
+         data-alert-variant="danger">
+         <!-- cor 'vermelha' do Bootstrap -->
+      </div>
+      {% endif %}
+      <!-- JS (Bootstrap + seu JS de sessão) -->
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+      <script src="{% static 'base/js/sessao.js' %}"></script>
+      {% block extra_js %}{% endblock %}
+   </body>
 </html>

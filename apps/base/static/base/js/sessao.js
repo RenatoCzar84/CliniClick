@@ -1,128 +1,126 @@
-// apps/base/static/base/js/sessao.js
-(function(){
-  if (window.__sessaoInit) return; window.__sessaoInit = true;
+(function () {
+  const cfg = document.getElementById('sessao-config');
+  if (!cfg) return;
 
-  const $ = (id)=>document.getElementById(id);
-  const now = ()=>Date.now();
-  const log = (...a)=>console.log("[sessao]", ...a);
-  const warn = (...a)=>console.warn("[sessao]", ...a);
+  // Só ativa se estiver logado
+  const LOGGED = cfg.dataset.logged === '1';
+  if (!LOGGED) return;
 
-  function parseNum(v, fb){ const n = parseFloat(v); return Number.isFinite(n)?n:fb; }
-  function bootstrapOK(){ return !!(window.bootstrap && typeof window.bootstrap.Modal === "function"); }
+  // Tempos vindos do HTML (fallbacks)
+  const IDLE_MS = parseInt(cfg.dataset.idleMs || '60000', 10);        // agora 10000
+  const COUNTDOWN_MS = parseInt(cfg.dataset.countdownMs || '120000', 10); // agora 30000
+  const KEEPALIVE_URL = cfg.dataset.keepaliveUrl;
+  const LOGOUT_URL = cfg.dataset.logoutUrl;
+  const INDEX_URL = cfg.dataset.indexUrl;
+  const VARIANT = (cfg.dataset.alertVariant || 'warning'); // danger, warning, etc.
 
-  function mkFallbackModal(){
-    const el = document.createElement("div");
-    el.id="sessao-fallback-overlay";
-    el.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1055;font-family:system-ui,Arial";
-    el.innerHTML=`
-      <div style="background:#fff;width:min(520px,92%);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);overflow:hidden">
-        <div style="padding:12px 16px;color:#fff;background:linear-gradient(135deg,#2563eb,#14b8a6);font-weight:600">Sessão prestes a expirar</div>
-        <div style="padding:16px;font-size:16px">Você ficou inativo(a). Sua sessão será encerrada em <strong><span id="contador-sessao-fb">120</span>s</strong>.</div>
-        <div style="padding:12px 16px;display:flex;justify-content:flex-end;gap:8px">
-          <button id="btn-voltei-fb" style="border:0;background:#16a34a;color:#fff;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer">Voltei</button>
+  // Elementos do popup (cria se não existir)
+  let modal = document.getElementById('sessao-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'sessao-modal';
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+      <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header py-2">
+            <h5 class="modal-title">Sessão inativa</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-2">Por segurança, você será desconectado em <b><span id="sessao-count">30</span>s</b>.</p>
+            <div class="progress mb-3" style="height:6px;">
+              <div id="sessao-bar" class="progress-bar" role="progressbar" style="width: 100%;"></div>
+            </div>
+            <div class="d-flex justify-content-between">
+              <button id="sessao-stay" class="btn btn-sm btn-outline-secondary">Voltei</button>
+              <button id="sessao-exit" class="btn btn-sm btn-outline-danger">Sair agora</button>
+            </div>
+          </div>
         </div>
       </div>`;
-    document.body.appendChild(el);
-    return {
-      show(sec){ const s=$("contador-sessao-fb"); if(s) s.textContent=String(sec); el.style.display="flex"; },
-      hide(){ el.style.display="none"; },
-      onBack(cb){ el.addEventListener("click",e=>{ if(e.target && e.target.id==="btn-voltei-fb") cb(); }); }
-    };
+    document.body.appendChild(modal);
   }
 
-  function init(){
-    const cfg = $("sessao-config");
-    if (!cfg){
-      log("sem #sessao-config (provável usuário anônimo); nada a fazer.");
-      return;
-    }
+  // aplica a cor "atenção" (danger) no header e na barra
+  const header = modal.querySelector('.modal-header');
+  const bar = modal.querySelector('#sessao-bar');
+  header.classList.remove('bg-warning','bg-danger','bg-primary','bg-info','text-dark','text-white');
+  bar.classList.remove('bg-warning','bg-danger','bg-primary','bg-info');
 
-    // Lê configs
-    const keepaliveUrl = cfg.dataset.keepaliveUrl || "";
-    const logoutBeaconUrl = cfg.dataset.logoutBeaconUrl || "";
-    const logoutUrl = cfg.dataset.logoutUrl || "";
-    const homeUrl   = cfg.dataset.homeUrl   || "/";
-    const minInatMin = parseNum(cfg.dataset.popupMinInatividade, 1);
-    const contMin    = parseNum(cfg.dataset.contagemRegressiva, 2);
-    const hardCapMin = parseNum(cfg.dataset.tempoMaxSessao, 3);
-    const debug = cfg.dataset.debug === "1";
+  if (VARIANT === 'danger') {
+    header.classList.add('bg-danger','text-white');
+    bar.classList.add('bg-danger');
+  } else if (VARIANT === 'warning') {
+    header.classList.add('bg-warning','text-dark');
+    bar.classList.add('bg-warning');
+  } else {
+    header.classList.add('bg-primary','text-white');
+    bar.classList.add('bg-primary');
+  }
 
-    const minInatMs = minInatMin*60*1000;
-    const hardCapMs = hardCapMin*60*1000;
-    let countdown = Math.max(1, Math.round(contMin*60)); // seg
+  const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
+  const stayBtn = modal.querySelector('#sessao-stay');
+  const exitBtn = modal.querySelector('#sessao-exit');
+  const countEl = modal.querySelector('#sessao-count');
 
-    // Estado
-    let lastActivity = now();
-    let popupOpen=false, countdownId=null, hardCapId=null, fbModal=null, bsModal=null;
+  let idleTimer = null;
+  let countdownTimer = null;
+  let countdownLeft = COUNTDOWN_MS;
 
-    if (debug){
-      log("init", {minInatMin, contMin, hardCapMin, bootstrap: bootstrapOK(), keepaliveUrl, logoutUrl, homeUrl});
-      const badge = document.createElement("div");
-      badge.style.cssText="position:fixed;bottom:10px;right:10px;background:#111;color:#fff;padding:6px 10px;border-radius:999px;font:12px/1.2 monospace;z-index:2000;opacity:.85";
-      setInterval(()=>{ badge.textContent=`idle=${Math.floor((now()-lastActivity)/1000)}s | popup=${popupOpen?1:0}`; }, 1000);
-      document.body.appendChild(badge);
-    }
+  function resetIdleTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    // esconde se estava visível
+    try { bsModal.hide(); } catch(e){}
+    idleTimer = setTimeout(showWarning, IDLE_MS);
+    // opcional: ping para manter sessão viva enquanto há atividade
+    if (KEEPALIVE_URL) navigator.sendBeacon(KEEPALIVE_URL);
+  }
 
-    function keepalive(){ if(keepaliveUrl) fetch(keepaliveUrl,{credentials:"same-origin"}).catch(()=>{}); }
-    function forceLogout(){
-      // Navega direto para logout com next=home; replace evita voltar ao estado anterior.
-      const target = logoutUrl ? `${logoutUrl}?next=${encodeURIComponent(homeUrl)}&_=${Date.now()}`
-                               : (logoutBeaconUrl || homeUrl);
-      window.location.replace(target);
-    }
-    function ensureHardCap(){ clearTimeout(hardCapId); hardCapId=setTimeout(forceLogout, hardCapMs); }
-
-    function startCountdown(update, done){
-      clearInterval(countdownId);
-      let sec = countdown; update(sec);
-      countdownId=setInterval(()=>{ sec--; update(sec); if(sec<=0){ clearInterval(countdownId); countdownId=null; done(); } }, 1000);
-    }
-
-    function openPopup(){
-      if(popupOpen) return; popupOpen=true;
-
-      if (bootstrapOK()){
-        const modalEl = $("sessaoModal");
-        if(!modalEl){ warn("Bootstrap OK, mas #sessaoModal não encontrado; usando fallback."); return openFallback(); }
-        const span = $("contador-sessao");
-        if(!bsModal) bsModal = new bootstrap.Modal(modalEl,{backdrop:"static",keyboard:false});
-        bsModal.show();
-        startCountdown((s)=>{ if(span) span.textContent=String(s); }, ()=>{ closePopup(); forceLogout(); });
-      } else {
-        openFallback();
+  function showWarning() {
+    countdownLeft = COUNTDOWN_MS;
+    updateCountdownUI();
+    bsModal.show();
+    // barra regressiva
+    const start = Date.now();
+    countdownTimer = setInterval(() => {
+      const elapsed = Date.now() - start;
+      countdownLeft = Math.max(COUNTDOWN_MS - elapsed, 0);
+      updateCountdownUI();
+      if (countdownLeft <= 0) {
+        clearInterval(countdownTimer);
+        doLogout();
       }
-    }
-    function openFallback(){
-      if(!fbModal) fbModal = mkFallbackModal();
-      fbModal.show(countdown);
-      fbModal.onBack(handleImBack);
-      startCountdown((s)=>{ const span=$("contador-sessao-fb"); if(span) span.textContent=String(s); }, ()=>{ closePopup(); forceLogout(); });
-    }
-    function closePopup(){
-      if(!popupOpen) return; popupOpen=false;
-      clearInterval(countdownId); countdownId=null;
-      try{ if(bsModal) bsModal.hide(); }catch(_){}
-      try{ if(fbModal) fbModal.hide(); }catch(_){}
-    }
-    function handleImBack(){
-      keepalive(); closePopup(); lastActivity=now(); ensureHardCap();
-    }
-
-    // Atividade (ignora se popup aberto)
-    ["mousemove","keypress","click","scroll","touchstart"].forEach(evt=>{
-      window.addEventListener(evt, ()=>{ if(!popupOpen) lastActivity=now(); }, {passive:true});
-    });
-    document.addEventListener("click", (e)=>{ if(e.target && e.target.id==="btn-voltei") handleImBack(); });
-
-    // Heartbeat
-    setInterval(()=>{ if(!popupOpen && (now()-lastActivity)>=minInatMs) openPopup(); }, 1000);
-    ensureHardCap();
-
-    // Utilidades de teste
-    window.__forceSessionPopup = openPopup;
-    window.__simulateIdle = (s)=>{ lastActivity = now() - (Math.max(1, s)*1000); };
+    }, 200);
   }
 
-  if (document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", init); }
-  else { init(); }
+  function updateCountdownUI() {
+    const secs = Math.ceil(countdownLeft / 1000);
+    countEl.textContent = secs;
+    const pct = (countdownLeft / COUNTDOWN_MS) * 100;
+    bar.style.width = pct + '%';
+  }
+
+  function doLogout() {
+    // avisa o backend e redireciona para a home
+    if (LOGOUT_URL) navigator.sendBeacon(LOGOUT_URL);
+    window.location.href = LOGOUT_URL;
+  }
+
+  // Botões do modal
+  stayBtn.addEventListener('click', () => {
+    // usuário voltou → mantém sessão ativa e reinicia contagem de inatividade
+    if (KEEPALIVE_URL) navigator.sendBeacon(KEEPALIVE_URL);
+    resetIdleTimer();
+  });
+  exitBtn.addEventListener('click', () => doLogout());
+
+  // Eventos de atividade do usuário
+  ['mousemove','mousedown','keydown','scroll','touchstart','touchmove'].forEach(ev => {
+    document.addEventListener(ev, resetIdleTimer, { passive: true });
+  });
+
+  // inicia
+  resetIdleTimer();
 })();
