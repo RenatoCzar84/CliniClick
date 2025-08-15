@@ -25,11 +25,16 @@ SECRET_KEY = 'django-insecure-4hxp9ra#&tqu!e%(kc_q^x*w1$7povfljnbu1c7^2k4g*^49t6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-AUTH_USER_MODEL = 'usuarios.Usuario'
-LOGIN_URL = 'login_usuario'
-LOGIN_REDIRECT_URL = 'painel_usuario'
-LOGOUT_REDIRECT_URL = 'login_usuario'
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.0.10"]
+
+AUTH_USER_MODEL = "usuarios.Usuario"
+
+# Use os nomes COM namespace
+LOGIN_URL = "usuarios:login_usuario"
+LOGIN_REDIRECT_URL = "usuarios:painel_usuario"
+
+# Ao sair, volte para a Home (evita depender do login aqui)
+LOGOUT_REDIRECT_URL = "index"
 
 
 # Application definition
@@ -41,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'apps.agenda',
     'apps.base',
     'apps.usuarios',
     'widget_tweaks',
