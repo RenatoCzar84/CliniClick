@@ -1,85 +1,69 @@
-{% extends "base/base.html" %}
-{% block title %}{% if edicao %}Editar Consulta{% else %}Agendar Consulta{% endif %} | Cliniclick{% endblock %}
+from django.db import models
+from django.db import models
+from django.conf import settings
 
-{% block content %}
-<div class="py-3">
-  <div class="mb-2">
-  <a class="btn btn-sm btn-outline-secondary" href="{% url 'usuarios:painel_usuario' %}">
-    <i class="bi bi-arrow-left"></i> Voltar ao painel
-  </a>
-</div>
-  <div class="card shadow-sm mx-auto" style="max-width:560px;">
-    <div class="card-header bg-primary text-white text-center py-3">
-      <strong class="fancy-title mb-0 fs-5">{% if edicao %}Editar Consulta{% else %}Agendar Consulta{% endif %}</strong>
-    </div>
-    <div class="card-body">
-      <form method="post" novalidate>
-        {% csrf_token %}
+class Especialidade(models.Model):
+    nome = models.CharField(max_length=100, unique=True)
 
-        <div class="mb-3">
-          <label class="form-label">Especialidade</label>
-          {{ form.especialidade }}
-          <div class="invalid-feedback d-block">{{ form.especialidade.errors|striptags }}</div>
-        </div>
+    class Meta:
+        ordering = ["nome"]
 
-        <div class="mb-3">
-          <label class="form-label">Médico</label>
-          {{ form.medico }}
-          <div class="invalid-feedback d-block">{{ form.medico.errors|striptags }}</div>
-        </div>
+    def __str__(self):
+        return self.nome
 
-        <div class="row g-3">
-          <div class="col-6">
-            <label class="form-label">Data</label>
-            {{ form.data }}
-            <div class="invalid-feedback d-block">{{ form.data.errors|striptags }}</div>
-          </div>
-          <div class="col-6">
-            <label class="form-label">Horário</label>
-            {{ form.hora }}
-            <div class="invalid-feedback d-block">{{ form.hora.errors|striptags }}</div>
-          </div>
-        </div>
+class Medico(models.Model):
+    nome = models.CharField(max_length=120)
+    especialidade = models.ForeignKey(Especialidade, on_delete=models.PROTECT, related_name="medicos")
+    ativo = models.BooleanField(default=True)
 
-        <div class="mb-3 mt-3">
-          <label class="form-label">Observações (opcional)</label>
-          {{ form.observacoes }}
-          <div class="invalid-feedback d-block">{{ form.observacoes.errors|striptags }}</div>
-        </div>
+    class Meta:
+        ordering = ["especialidade__nome", "nome"]
+        unique_together = ("nome", "especialidade")
 
-        <div class="d-flex gap-2">
-          <button class="btn btn-primary" type="submit">{% if edicao %}Salvar{% else %}Agendar{% endif %}</button>
-          <a class="btn btn-outline-secondary" href="{% url 'usuarios:painel_usuario' %}">Cancelar</a>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-{% endblock %}
+    def __str__(self):
+        return f"{self.nome} ({self.especialidade.nome})"
 
-{% block extra_js %}
-<script>
-(function(){
-  const esp = document.getElementById('id_especialidade');
-  const med = document.getElementById('id_medico');
-  if (esp && med){
-    async function loadMedicos(especialidadeId){
-      if(!especialidadeId){ med.innerHTML = '<option value="">— selecione —</option>'; return; }
-      med.disabled = true;
-      const url = "{% url 'agenda:medicos_por_especialidade' 0 %}".replace('/0/', `/${especialidadeId}/`);
-      try{
-        const r = await fetch(url, {credentials:'same-origin'});
-        const data = await r.json();
-        med.innerHTML = '<option value="">— selecione —</option>' + data.medicos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
-      }catch(e){
-        med.innerHTML = '<option value="">(erro ao carregar)</option>';
-      }finally{
-        med.disabled = false;
-      }
-    }
-    esp.addEventListener('change', e => loadMedicos(e.target.value));
-    if (esp.value && (!med.value || med.options.length <= 1)) loadMedicos(esp.value);
-  }
-})();
-</script>
-{% endblock %}
+class ExameTipo(models.Model):
+    nome = models.CharField(max_length=120, unique=True)
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["nome"]
+
+    def __str__(self):
+        return self.nome
+
+class Agendamento(models.Model):
+    TIPO_CONSULTA = "consulta"
+    TIPO_EXAME = "exame"
+    TIPO_CHOICES = [
+        (TIPO_CONSULTA, "Consulta"),
+        (TIPO_EXAME, "Exame"),
+    ]
+
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="agendamentos")
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+
+    # Para consulta
+    especialidade = models.ForeignKey(Especialidade, null=True, blank=True, on_delete=models.PROTECT)
+    medico = models.ForeignKey(Medico, null=True, blank=True, on_delete=models.PROTECT)
+
+    # Para exame
+    exame_tipo = models.ForeignKey(ExameTipo, null=True, blank=True, on_delete=models.PROTECT)
+
+    data_hora = models.DateTimeField()
+    observacoes = models.TextField(blank=True)
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["data_hora"]
+
+    def __str__(self):
+        if self.tipo == self.TIPO_CONSULTA:
+            alvo = self.medico or self.especialidade
+        else:
+            alvo = self.exame_tipo
+        return f"{self.get_tipo_display()} - {alvo} em {self.data_hora:%d/%m/%Y %H:%M}"
+# Create your models here.
