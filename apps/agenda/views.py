@@ -1,85 +1,83 @@
-{% extends "base/base.html" %}
-{% block title %}{% if edicao %}Editar Consulta{% else %}Agendar Consulta{% endif %} | Cliniclick{% endblock %}
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse, Http404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+from .models import Agendamento, Medico
+from .forms import AgendarConsultaForm, AgendarExameForm
+from django.urls import reverse
 
-{% block content %}
-<div class="py-3">
-  <div class="mb-2">
-  <a class="btn btn-sm btn-outline-secondary" href="{% url 'usuarios:painel_usuario' %}">
-    <i class="bi bi-arrow-left"></i> Voltar ao painel
-  </a>
-</div>
-  <div class="card shadow-sm mx-auto" style="max-width:560px;">
-    <div class="card-header bg-primary text-white text-center py-3">
-      <strong class="fancy-title mb-0 fs-5">{% if edicao %}Editar Consulta{% else %}Agendar Consulta{% endif %}</strong>
-    </div>
-    <div class="card-body">
-      <form method="post" novalidate>
-        {% csrf_token %}
+@login_required
+def agendar_consulta(request):
+    if request.method == "POST":
+        form = AgendarConsultaForm(request.POST)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.usuario = request.user
+            obj.tipo = Agendamento.TIPO_CONSULTA
+            obj.save()
+            messages.success(request, "Consulta agendada com sucesso!")
+            return redirect(reverse("usuarios:painel_usuario") + "?tab=agendamentos")
+    else:
+        form = AgendarConsultaForm()
+    return render(request, "agenda/agendar_consulta.html", {"form": form})
 
-        <div class="mb-3">
-          <label class="form-label">Especialidade</label>
-          {{ form.especialidade }}
-          <div class="invalid-feedback d-block">{{ form.especialidade.errors|striptags }}</div>
-        </div>
+@login_required
+def agendar_exame(request):
+    if request.method == "POST":
+        form = AgendarExameForm(request.POST)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.usuario = request.user
+            obj.tipo = Agendamento.TIPO_EXAME
+            obj.save()
+            messages.success(request, "Exame agendado com sucesso!")
+            return redirect(reverse("usuarios:painel_usuario") + "?tab=agendamentos")
+    else:
+        form = AgendarExameForm()
+    return render(request, "agenda/agendar_exame.html", {"form": form})
 
-        <div class="mb-3">
-          <label class="form-label">Médico</label>
-          {{ form.medico }}
-          <div class="invalid-feedback d-block">{{ form.medico.errors|striptags }}</div>
-        </div>
 
-        <div class="row g-3">
-          <div class="col-6">
-            <label class="form-label">Data</label>
-            {{ form.data }}
-            <div class="invalid-feedback d-block">{{ form.data.errors|striptags }}</div>
-          </div>
-          <div class="col-6">
-            <label class="form-label">Horário</label>
-            {{ form.hora }}
-            <div class="invalid-feedback d-block">{{ form.hora.errors|striptags }}</div>
-          </div>
-        </div>
+@login_required
+def listar_agendamentos(request):
+    itens = (Agendamento.objects
+             .select_related("especialidade", "medico", "exame_tipo")
+             .filter(usuario=request.user)
+             .order_by("data_hora"))
+    return render(request, "agenda/listar_agendamentos.html", {"itens": itens})
 
-        <div class="mb-3 mt-3">
-          <label class="form-label">Observações (opcional)</label>
-          {{ form.observacoes }}
-          <div class="invalid-feedback d-block">{{ form.observacoes.errors|striptags }}</div>
-        </div>
+@login_required
+def editar_agendamento(request, pk):
+    obj = get_object_or_404(Agendamento, pk=pk, usuario=request.user)
+    if obj.tipo == Agendamento.TIPO_CONSULTA:
+        FormClass = AgendarConsultaForm
+        template = "agenda/agendar_consulta.html"
+    elif obj.tipo == Agendamento.TIPO_EXAME:
+        FormClass = AgendarExameForm
+        template = "agenda/agendar_exame.html"
+    else:
+        raise Http404
 
-        <div class="d-flex gap-2">
-          <button class="btn btn-primary" type="submit">{% if edicao %}Salvar{% else %}Agendar{% endif %}</button>
-          <a class="btn btn-outline-secondary" href="{% url 'usuarios:painel_usuario' %}">Cancelar</a>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-{% endblock %}
+    if request.method == "POST":
+        form = FormClass(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Agendamento atualizado.")
+            return redirect(reverse("usuarios:painel_usuario") + "?tab=agendamentos")
+    else:
+        form = FormClass(instance=obj)
+    return render(request, template, {"form": form, "edicao": True})
 
-{% block extra_js %}
-<script>
-(function(){
-  const esp = document.getElementById('id_especialidade');
-  const med = document.getElementById('id_medico');
-  if (esp && med){
-    async function loadMedicos(especialidadeId){
-      if(!especialidadeId){ med.innerHTML = '<option value="">— selecione —</option>'; return; }
-      med.disabled = true;
-      const url = "{% url 'agenda:medicos_por_especialidade' 0 %}".replace('/0/', `/${especialidadeId}/`);
-      try{
-        const r = await fetch(url, {credentials:'same-origin'});
-        const data = await r.json();
-        med.innerHTML = '<option value="">— selecione —</option>' + data.medicos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
-      }catch(e){
-        med.innerHTML = '<option value="">(erro ao carregar)</option>';
-      }finally{
-        med.disabled = false;
-      }
-    }
-    esp.addEventListener('change', e => loadMedicos(e.target.value));
-    if (esp.value && (!med.value || med.options.length <= 1)) loadMedicos(esp.value);
-  }
-})();
-</script>
-{% endblock %}
+@login_required
+@require_POST
+def excluir_agendamento(request, pk):
+    obj = get_object_or_404(Agendamento, pk=pk, usuario=request.user)
+    obj.delete()
+    messages.info(request, "Agendamento excluído.")
+    return redirect(reverse("usuarios:painel_usuario") + "?tab=agendamentos")
+
+@login_required
+def medicos_por_especialidade(request, especialidade_id):
+    qs = Medico.objects.filter(ativo=True, especialidade_id=especialidade_id).order_by("nome")
+    data = [{"id": m.id, "nome": m.nome} for m in qs]
+    return JsonResponse({"medicos": data})
