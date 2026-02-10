@@ -2,7 +2,7 @@ Cliniclick
 
 Sistema web de agendamentos clínicos feito com Django 5, SQLite e Bootstrap. Inclui cadastro de usuários com modelo customizado, fluxo de agendamento de consultas e exames com prevenção de conflitos, filtros dinâmicos por especialidade e controle de sessão por inatividade.
 
-✨ Visão geral
+Visão geral
 
 Stack: Django 5, Python 3.11+, SQLite (dev), Bootstrap.
 
@@ -10,7 +10,7 @@ Apps: base, usuarios (usuário customizado), agenda (consultas/exames).
 
 Objetivo: projeto “rodável em outra máquina” com documentação e dependências versionadas.
 
-📦 Funcionalidades
+Funcionalidades
 
 Usuário customizado usuarios.Usuario com campos extras: cep, rua, numero, complemento, bairro, cidade, estado, telefone, cpf, data_nascimento, plano_saude, apelido.
 
@@ -36,7 +36,7 @@ Formulários em duas colunas.
 
 Cartão “Preencha seus dados” ajustado ao conteúdo, com menor espaçamento interno e entre colunas (sem alterar o tamanho dos campos).
 
-🗂️ Estrutura (sugerida)
+Estrutura (sugerida)
 
 Observação: os apps podem estar na pasta apps/ ou na raiz do repositório. Adapte os caminhos conforme seu projeto.
 
@@ -61,7 +61,7 @@ Python 3.11+
 
 Pip e Virtualenv
 
-🚀 Rodando localmente
+Rodando localmente
 
 # 1) Clonar e entrar no projeto
 git clone <URL_DO_REPO>
@@ -91,7 +91,7 @@ python manage.py createsuperuser
 # 7) Subir o servidor
 python manage.py runserver
 
-⚙️ Configuração do Django (exemplo)
+Configuração do Django (exemplo)
 
 # main/settings.py (trechos úteis)
 from pathlib import Path
@@ -146,7 +146,7 @@ urlpatterns = [
     path('agenda/', include('apps.agenda.urls')),
 ]
 
-🔐 Variáveis de ambiente (.env.example)
+Variáveis de ambiente (.env.example)
 
 DJANGO_SECRET_KEY=troque-por-uma-chave-segura
 DEBUG=1
@@ -154,7 +154,7 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 SESSION_IDLE_POPUP_SECONDS=10
 SESSION_IDLE_COUNTDOWN=30
 
-📅 Modelos / Fluxos principais
+Modelos / Fluxos principais
 
 usuarios
 
@@ -188,7 +188,7 @@ Sessão / Inatividade
 
 JS monitora inatividade; após 10s abre popup com 30s de contagem e encerra a sessão.
 
-🧩 URLs (exemplos)
+URLs (exemplos)
 
 / → index.html
 
@@ -200,7 +200,7 @@ JS monitora inatividade; após 10s abre popup com 30s de contagem e encerra a se
 
 Ajuste conforme seus urls.py de cada app.
 
-📋 Requisitos (requirements)
+Requisitos (requirements)
 
 Gerar/atualizar requirements.txt com o venv ativo:
 
@@ -220,13 +220,13 @@ pip-compile -o requirements.txt
 pip install pipreqs
 pipreqs . --force
 
-🧪 Testes (sugestão)
+Testes (sugestão)
 
 python manage.py test
 
 Adicione testes de validação de conflito de agenda e do filtro AJAX.
 
-🚀 Deploy (pontos de atenção)
+Deploy (pontos de atenção)
 
 Defina DEBUG=0 e ALLOWED_HOSTS adequados.
 
@@ -236,7 +236,7 @@ Use Postgres/MySQL no ambiente produtivo.
 
 Configure STATIC_ROOT e rode collectstatic.
 
-🆘 Solução de problemas
+Solução de problemas
 
 404 na raiz: inclua rota '' em main/urls.py apontando para index.html.
 
@@ -244,7 +244,7 @@ Templates não encontrados: garanta TEMPLATES['DIRS'] = [BASE_DIR / 'templates']
 
 Apps em apps/: use import com caminho completo em INSTALLED_APPS (ex.: 'apps.agenda').
 
-📝 Changelog recente
+Changelog recente
 
 Cadastro (UI):
 
@@ -264,7 +264,7 @@ Sessão: popup de inatividade (10s) + contagem de 30s para auto-logout.
 
 Docs: este README criado/atualizado; incluídas instruções de requirements.txt.
 
-🧭 Dicas Git rápidas
+Dicas Git rápidas
 
 Desfazer o último commit mantendo as alterações no working tree:
 
@@ -278,7 +278,7 @@ Reverter um commit já enviado (gera novo commit de reversão):
 
 git revert <hash>
 
-🗺️ Roadmap
+Roadmap
 
 Documentação dos endpoints da agenda (API opcional).
 
